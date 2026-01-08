@@ -72,6 +72,16 @@ public class Client extends Personne {
         System.out.println(reservation);
     }
 
+    public void afficherReservations() {
+        if (reservations.isEmpty()) {
+            System.out.println("Aucune réservation.");
+        } else {
+            for (Reservation r : reservations) {
+                System.out.println(r);
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return super.toString() + ", Adresse: " + adresse + ", Inscrit depuis: " + dateInscription;
