@@ -1,118 +1,68 @@
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-/**
- * CollectionHebergements : gère un ensemble dynamique d'hébergements.
- */
-public class CollectionHebergements {
+public class Administrateur extends Personne {
 
-    private final List<Hebergement> hebergements;
+    public Administrateur(String nom, String prenom, String email) {
+        super(nom, prenom, email);
+    }
 
-    public CollectionHebergements() {
-        this.hebergements = new ArrayList<>();
+    @Override
+    public String getTypePersonne() {
+        return "Administrateur";
     }
 
     // ==========================
     // Ajouter un hébergement
     // ==========================
-    public void ajouter(Hebergement h) {
-        if (h != null) {
-            hebergements.add(h);
-            System.out.println("Hébergement ajouté : " + h.getNom());
+    public void ajouterHebergement(CollectionHebergements collection, Hebergement h) {
+        if (collection != null && h != null) {
+            collection.ajouter(h);
+            System.out.println("Admin " + getNom() + " a ajouté : " + h.getNom());
         }
     }
 
     // ==========================
     // Supprimer un hébergement
     // ==========================
-    public boolean supprimer(Hebergement h) {
-        if (h != null && hebergements.contains(h)) {
-            hebergements.remove(h);
-            System.out.println("Hébergement supprimé : " + h.getNom());
-            return true;
-        }
-        return false;
-    }
-
-    // ==========================
-    // Rechercher par type
-    // ==========================
-    public List<Hebergement> rechercherParType(String type) {
-        List<Hebergement> resultat = new ArrayList<>();
-        for (Hebergement h : hebergements) {
-            if (h.getType().equalsIgnoreCase(type)) {
-                resultat.add(h);
-            }
-        }
-        return resultat;
-    }
-
-    // ==========================
-    // Rechercher par prix max
-    // ==========================
-    public List<Hebergement> rechercherParPrixMax(double prixMax) {
-        List<Hebergement> resultat = new ArrayList<>();
-        for (Hebergement h : hebergements) {
-            if (h.getPrixParNuit() <= prixMax) {
-                resultat.add(h);
-            }
-        }
-        return resultat;
-    }
-
-    // ==========================
-    // Rechercher par capacité minimale
-    // ==========================
-    public List<Hebergement> rechercherParCapaciteMin(int capaciteMin) {
-        List<Hebergement> resultat = new ArrayList<>();
-        for (Hebergement h : hebergements) {
-            if (h.getCapaciteMax() >= capaciteMin) {
-                resultat.add(h);
-            }
-        }
-        return resultat;
-    }
-
-    // ==========================
-    // Rechercher par note minimale
-    // ==========================
-    public List<Hebergement> rechercherParNoteMin(double noteMin) {
-        List<Hebergement> resultat = new ArrayList<>();
-        for (Hebergement h : hebergements) {
-            if (h.getNoteMoyenne() >= noteMin) {
-                resultat.add(h);
-            }
-        }
-        return resultat;
-    }
-
-    // ==========================
-    // Trier les hébergements (par prix ou note)
-    // ==========================
-    public void trierParPrix() {
-        Collections.sort(hebergements); // Utilise Comparable de Hebergement (prix)
-    }
-
-    public void trierParNote() {
-        hebergements.sort((h1, h2) -> Double.compare(h2.getNoteMoyenne(), h1.getNoteMoyenne()));
-    }
-
-    // ==========================
-    // Afficher tous les hébergements
-    // ==========================
-    public void afficherTous() {
-        System.out.println("=== Liste des hébergements ===");
-        for (Hebergement h : hebergements) {
-            h.afficherDetails();
-            System.out.println("--------------------------");
+    public void supprimerHebergement(CollectionHebergements collection, Hebergement h) {
+        if (collection != null && h != null) {
+            boolean ok = collection.supprimer(h);
+            if (ok) System.out.println("Admin " + getNom() + " a supprimé : " + h.getNom());
+            else System.out.println("Impossible de supprimer : " + h.getNom());
         }
     }
 
     // ==========================
-    // Getter pour accéder à la liste si besoin
+    // Modifier un hébergement (ex : prix ou description)
     // ==========================
-    public List<Hebergement> getHebergements() {
-        return new ArrayList<>(hebergements); // retour copie pour sécurité
+    public void modifierHebergement(Hebergement h, String nouveauNom,
+                                    String nouvelleDescription, double nouveauPrix) {
+        if (h != null) {
+            h.setNom(nouveauNom);
+            h.setDescriptionGenerale(nouvelleDescription);
+            h.setPrixParNuit(nouveauPrix);
+            System.out.println("Admin " + getNom() + " a modifié : " + h.getNom());
+        }
+    }
+
+    // ==========================
+    // Gérer les réductions pour un AncienClient
+    // ==========================
+    public void appliquerReduction(AncienClient client, double pourcentage) {
+        if (client != null) {
+            client.setReduction(pourcentage); // Il faudra ajouter setReduction dans AncienClient
+            System.out.println("Réduction de " + pourcentage + "% appliquée pour : " + client.getNom());
+        }
+    }
+
+    // ==========================
+    // Consulter les dossiers d’un client
+    // ==========================
+    public void consulterClient(Client client) {
+        if (client != null) {
+            System.out.println("=== Dossier du client : " + client.getNom() + " ===");
+            System.out.println(client);
+            client.afficherReservations();
+        }
     }
 }
