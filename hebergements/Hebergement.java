@@ -1,13 +1,13 @@
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Classe de base Hebergement (conforme à l'énoncé).
- * - Comparable<Hebergement> pour permettre le tri (ici : par prixParNuit).
- * - Gère : équipements, périodes disponibles (plages de dates), notes + moyenne.
+ * Hebergement qui implémente Reservable + Comparable.
+ * (Tu peux ensuite faire ChambreHotel/Appartement/Villa en héritage.)
  */
-public class Hebergement implements Comparable<Hebergement> {
+public class Hebergement implements Comparable<Hebergement>, Reservable {
 
     // --------- Attributs minimum ----------
     private final int id;                 // identifiant unique
@@ -19,14 +19,17 @@ public class Hebergement implements Comparable<Hebergement> {
     private String descriptionGenerale;
 
     // équipements (WiFi, TV, cuisine, etc.)
-    private final ArrayList<String> equipements;
+    private final List<String> equipements;
 
     // périodes disponibles (plages de dates)
-    private final ArrayList<Periode> periodesDisponibles;
+    private final List<Periode> periodesDisponibles;
 
     // notes des clients + note moyenne
-    private final ArrayList<Integer> notes;
+    private final List<Integer> notes;
     private double noteMoyenne;
+
+    // réservations (simplifiées) pour estReservee / annuler
+    private final List<ReservationSimple> reservations;
 
     // --------- Constructeur ----------
     public Hebergement(int id, String nom, String adressePostale, String type,
@@ -47,13 +50,83 @@ public class Hebergement implements Comparable<Hebergement> {
         this.periodesDisponibles = new ArrayList<>();
         this.notes = new ArrayList<>();
         this.noteMoyenne = 0.0;
+
+        this.reservations = new ArrayList<>();
     }
 
     // ==========================================================
-    // Méthodes demandées
+    // Reservable
     // ==========================================================
 
-    /** Vérifier si une période (arrivée, départ) est libre */
+    @Override
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        return estLibre(debut, fin);
+    }
+
+    @Override
+    public double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes) {
+        if (nbPersonnes <= 0) throw new IllegalArgumentException("nbPersonnes invalide");
+        if (nbPersonnes > capaciteMax) throw new IllegalArgumentException("Capacité dépassée");
+        return calculerPrixTotal(debut, fin);
+    }
+
+    @Override
+    public void reserver(Client client, LocalDate debut, LocalDate fin) {
+        if (client == null) throw new IllegalArgumentException("client null");
+        if (!estLibre(debut, fin)) throw new IllegalStateException("Période non disponible");
+
+        // 1) Enregistrer la réservation
+        reservations.add(new ReservationSimple(client, debut, fin));
+
+        // 2) Mettre à jour les disponibilités : retirer [debut, fin) de la période qui la couvre
+        retirerPlageDeDisponibilites(debut, fin);
+    }
+
+    @Override
+    public void annulerReservation(Client client, LocalDate date) {
+        if (client == null) throw new IllegalArgumentException("client null");
+        if (date == null) throw new IllegalArgumentException("date null");
+
+        // Trouver la réservation du client qui contient cette date
+        ReservationSimple cible = null;
+        for (ReservationSimple r : reservations) {
+            if (r.client.equals(client) && r.contient(date)) {
+                cible = r;
+                break;
+            }
+        }
+        if (cible == null) throw new IllegalStateException("Aucune réservation à annuler pour cette date");
+
+        // Supprimer la réservation
+        reservations.remove(cible);
+
+        // Rendre la période à nouveau disponible (simple : on la rajoute)
+        periodesDisponibles.add(new Periode(cible.debut, cible.fin));
+        // (Optionnel : fusionner les périodes qui se touchent/chevauchent)
+    }
+
+    @Override
+    public boolean estReservee(LocalDate date) {
+        if (date == null) return false;
+        for (ReservationSimple r : reservations) {
+            if (r.contient(date)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void afficherDetails() {
+        System.out.println(this);
+        System.out.println("Equipements: " + equipements);
+        System.out.println("Disponibilités: " + periodesDisponibles);
+        System.out.println("Note moyenne: " + noteMoyenne);
+    }
+
+    // ==========================================================
+    // Méthodes demandées (dans l'énoncé)
+    // ==========================================================
+
+    /** Vérifier si une période (date d’arrivée, date de départ) est libre */
     public boolean estLibre(LocalDate arrivee, LocalDate depart) {
         if (arrivee == null || depart == null || !arrivee.isBefore(depart)) return false;
 
@@ -89,11 +162,11 @@ public class Hebergement implements Comparable<Hebergement> {
         return false;
     }
 
-    /** Ajouter une note et mettre à jour la moyenne */
+    /** Ajouter une note et mettre à jour la moyenne des notes */
     public void ajouterNote(int note) {
-        if (note < 1 || note > 5) throw new IllegalArgumentException("Note entre 1 et 5");
-        notes.add(note);
+        if (note < 1 || note > 5) throw new IllegalArgumentException("Note doit être entre 1 et 5");
 
+        notes.add(note);
         int somme = 0;
         for (int n : notes) somme += n;
         noteMoyenne = (double) somme / notes.size();
@@ -105,30 +178,31 @@ public class Hebergement implements Comparable<Hebergement> {
     @Override
     public int compareTo(Hebergement autre) {
         return Double.compare(this.prixParNuit, autre.prixParNuit);
+        // Alternative tri par note :
+        // return Double.compare(autre.noteMoyenne, this.noteMoyenne);
     }
 
     // ==========================================================
-    // Getters (minimum)
+    // Getters demandés par Reservable + utiles
     // ==========================================================
+    @Override
     public int getId() { return id; }
+
     public String getNom() { return nom; }
     public String getAdressePostale() { return adressePostale; }
+
+    @Override
     public String getType() { return type; }
+
+    @Override
     public int getCapaciteMax() { return capaciteMax; }
+
     public double getPrixParNuit() { return prixParNuit; }
     public String getDescriptionGenerale() { return descriptionGenerale; }
-    public ArrayList<String> getEquipements() { return equipements; }
-    public ArrayList<Periode> getPeriodesDisponibles() { return periodesDisponibles; }
-    public ArrayList<Integer> getNotes() { return notes; }
+    public List<String> getEquipements() { return equipements; }
+    public List<Periode> getPeriodesDisponibles() { return periodesDisponibles; }
+    public List<Integer> getNotes() { return notes; }
     public double getNoteMoyenne() { return noteMoyenne; }
-
-    // (Optionnel) setters si tu veux modifier après création
-    public void setNom(String nom) { this.nom = nom; }
-    public void setAdressePostale(String adressePostale) { this.adressePostale = adressePostale; }
-    public void setType(String type) { this.type = type; }
-    public void setCapaciteMax(int capaciteMax) { this.capaciteMax = capaciteMax; }
-    public void setPrixParNuit(double prixParNuit) { this.prixParNuit = prixParNuit; }
-    public void setDescriptionGenerale(String descriptionGenerale) { this.descriptionGenerale = descriptionGenerale; }
 
     @Override
     public String toString() {
@@ -140,9 +214,32 @@ public class Hebergement implements Comparable<Hebergement> {
                 ", capaciteMax=" + capaciteMax +
                 ", prixParNuit=" + prixParNuit +
                 ", noteMoyenne=" + noteMoyenne +
-                ", equipements=" + equipements +
-                ", periodesDisponibles=" + periodesDisponibles +
                 '}';
+    }
+
+    // ==========================================================
+    // Helpers internes
+    // ==========================================================
+    private void retirerPlageDeDisponibilites(LocalDate debut, LocalDate fin) {
+        for (int i = 0; i < periodesDisponibles.size(); i++) {
+            Periode p = periodesDisponibles.get(i);
+            if (p.couvre(debut, fin)) {
+                // On retire la période p et on la remplace par 0, 1 ou 2 périodes restantes
+                periodesDisponibles.remove(i);
+
+                // Partie avant [p.debut, debut)
+                if (p.debut.isBefore(debut)) {
+                    periodesDisponibles.add(new Periode(p.debut, debut));
+                }
+                // Partie après [fin, p.fin)
+                if (fin.isBefore(p.fin)) {
+                    periodesDisponibles.add(new Periode(fin, p.fin));
+                }
+                return;
+            }
+        }
+        // Normalement impossible si estLibre() a été vérifiée
+        throw new IllegalStateException("Aucune disponibilité ne couvre la plage à retirer");
     }
 
     // ==========================================================
@@ -163,7 +260,7 @@ public class Hebergement implements Comparable<Hebergement> {
         public LocalDate getDebut() { return debut; }
         public LocalDate getFin() { return fin; }
 
-        /** Retourne true si la période disponible couvre entièrement [arrivee, depart) */
+        /** True si la période disponible couvre entièrement [arrivee, depart) */
         public boolean couvre(LocalDate arrivee, LocalDate depart) {
             return (arrivee.isEqual(debut) || arrivee.isAfter(debut))
                     && (depart.isEqual(fin) || depart.isBefore(fin));
@@ -172,6 +269,29 @@ public class Hebergement implements Comparable<Hebergement> {
         @Override
         public String toString() {
             return "[" + debut + " -> " + fin + "]";
+        }
+    }
+
+    // ==========================================================
+    // Réservation simplifiée interne (en attendant ta vraie classe Reservation)
+    // ==========================================================
+    private static class ReservationSimple {
+        private final Client client;
+        private final LocalDate debut;
+        private final LocalDate fin; // fin exclusive
+
+        private ReservationSimple(Client client, LocalDate debut, LocalDate fin) {
+            if (debut == null || fin == null || !debut.isBefore(fin)) {
+                throw new IllegalArgumentException("Dates de réservation invalides");
+            }
+            this.client = client;
+            this.debut = debut;
+            this.fin = fin;
+        }
+
+        private boolean contient(LocalDate date) {
+            // date ∈ [debut, fin)
+            return (date.isEqual(debut) || date.isAfter(debut)) && date.isBefore(fin);
         }
     }
 }
