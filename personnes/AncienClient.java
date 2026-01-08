@@ -5,6 +5,7 @@ import reservations.Reservation;
 
 public class AncienClient extends Client {
     private String motDePasse; // pour se connecter
+    private double reduction; // pour gérer la réduction
 
     // Constructeur
     public AncienClient(String nom, String prenom, String email, String motDePasse, String adresse, Date dateInscription) {
