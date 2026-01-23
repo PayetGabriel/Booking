@@ -1,8 +1,9 @@
 package hebergements;
 
-import java.util.Date;
+import java.time.LocalDate;
+import personnes.Client;
 
-public class Appartement extends Hebergement implements Reservable {
+public class Appartement extends Hebergement {
 
     private double surfaceM2;
     private int etage;
@@ -13,41 +14,35 @@ public class Appartement extends Hebergement implements Reservable {
                        double surfaceM2, int etage) {
 
         super(id, nom, adressePostale, "Appartement",
-              capaciteMax, prixParNuit, descriptionGenerale);
+                capaciteMax, prixParNuit, descriptionGenerale);
 
         this.surfaceM2 = surfaceM2;
         this.etage = etage;
     }
 
     @Override
-    public boolean estDisponible(Date debut, Date fin) {
-        return estLibre(debut, fin);
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        return super.estDisponible(debut, fin);
     }
 
     @Override
-    public double calculerPrix(Date debut, Date fin, int nbPersonnes) {
-        if (nbPersonnes > getCapaciteMax()) {
-            throw new IllegalArgumentException("Capacité dépassée");
-        }
-        return calculerPrixTotal(debut, fin);
+    public double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes) {
+        return super.calculerPrix(debut, fin, nbPersonnes);
     }
 
     @Override
-    public void reserver(Client c, Date debut, Date fin) {
-        if (!estDisponible(debut, fin)) {
-            throw new IllegalStateException("Appartement non disponible");
-        }
-        supprimerPeriodeDisponible(debut, fin);
+    public void reserver(Client c, LocalDate debut, LocalDate fin) {
+        super.reserver(c, debut, fin);
     }
 
     @Override
-    public void annulerReservation(Client c, Date date) {
-        System.out.println("Annulation réservation appartement pour " + c.getNom());
+    public void annulerReservation(Client c, LocalDate date) {
+        super.annulerReservation(c, date);
     }
 
     @Override
-    public boolean estReservee(Date date) {
-        return !estLibre(date, new Date(date.getTime() + 86400000));
+    public boolean estReservee(LocalDate date) {
+        return super.estReservee(date);
     }
 
     @Override

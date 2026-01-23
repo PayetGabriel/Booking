@@ -1,6 +1,7 @@
 package hebergements;
 
-import java.util.Date;
+import personnes.Client;
+import java.time.LocalDate;
 
 public class ChambreHotel extends Hebergement implements Reservable {
 
@@ -20,36 +21,30 @@ public class ChambreHotel extends Hebergement implements Reservable {
     // ================= Reservable =================
 
     @Override
-    public boolean estDisponible(Date debut, Date fin) {
-        // On réutilise la méthode de Hebergement
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
         return estLibre(debut, fin);
     }
 
     @Override
-    public double calculerPrix(Date debut, Date fin, int nbPersonnes) {
-        if (nbPersonnes > getCapaciteMax()) {
-            throw new IllegalArgumentException("Capacité dépassée");
-        }
-        return calculerPrixTotal(debut, fin);
+    public double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes) {
+        if (nbPersonnes > getCapaciteMax()) throw new IllegalArgumentException("Capacité dépassée");
+        return super.calculerPrix(debut, fin, getCapaciteMax());
     }
 
     @Override
-    public void reserver(Client c, Date debut, Date fin) {
-        if (!estDisponible(debut, fin)) {
-            throw new IllegalStateException("Chambre non disponible");
-        }
-        supprimerPeriodeDisponible(debut, fin);
+    public void reserver(Client c, LocalDate debut, LocalDate fin) {
+        if (!estDisponible(debut, fin)) throw new IllegalStateException("Chambre non disponible");
+        retirerPlageDeDisponibilites(debut, fin);
     }
 
     @Override
-    public void annulerReservation(Client c, Date date) {
+    public void annulerReservation(Client c, LocalDate date) {
         System.out.println("Annulation réservation chambre hôtel pour " + c.getNom());
     }
 
     @Override
-    public boolean estReservee(Date date) {
-        // si aucune période dispo ne contient la date → réservé
-        return !estLibre(date, new Date(date.getTime() + 86400000));
+    public boolean estReservee(LocalDate date) {
+        return !estLibre(date, date.plusDays(1));
     }
 
     @Override

@@ -1,4 +1,10 @@
+package personnes;
+
 import java.util.List;
+import hebergements.Hebergement;
+import collections.CollectionHebergements;
+import personnes.Client;
+import personnes.AncienClient;
 
 public class Administrateur extends Personne {
 

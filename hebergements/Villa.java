@@ -1,6 +1,9 @@
 package hebergements;
 
-import java.util.Date;
+import java.time.LocalDate;
+import personnes.Client;
+import reservations.Reservation;
+import reservations.Reservation.StatutReservation;
 
 public class Villa extends Hebergement implements Reservable {
 
@@ -13,46 +16,54 @@ public class Villa extends Hebergement implements Reservable {
                  boolean piscine, double jardinM2) {
 
         super(id, nom, adressePostale, "Villa",
-              capaciteMax, prixParNuit, descriptionGenerale);
+                capaciteMax, prixParNuit, descriptionGenerale);
 
         this.piscine = piscine;
         this.jardinM2 = jardinM2;
     }
 
     @Override
-    public boolean estDisponible(Date debut, Date fin) {
-        return estLibre(debut, fin);
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        return estLibre(debut, fin) && !estReservee(debut); // simple vérif
     }
 
     @Override
-    public double calculerPrix(Date debut, Date fin, int nbPersonnes) {
-        if (nbPersonnes > getCapaciteMax()) {
-            throw new IllegalArgumentException("Capacité dépassée");
-        }
-
-        double prix = calculerPrixTotal(debut, fin);
+    public double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes) {
+        double prix = super.calculerPrix(debut, fin, nbPersonnes);
         if (piscine) {
-            prix *= 1.20; // +20 %
+            prix *= 1.20; // +20%
         }
         return prix;
     }
 
     @Override
-    public void reserver(Client c, Date debut, Date fin) {
+    public void reserver(Client c, LocalDate debut, LocalDate fin) {
         if (!estDisponible(debut, fin)) {
             throw new IllegalStateException("Villa non disponible");
         }
-        supprimerPeriodeDisponible(debut, fin);
+        Reservation res = new Reservation(c, this, debut, fin);
+        reservations.add(res); // utilise la liste de Hebergement
+        retirerPlageDeDisponibilites(debut, fin); // maintenant protected dans Hebergement
     }
 
     @Override
-    public void annulerReservation(Client c, Date date) {
-        System.out.println("Annulation réservation villa pour " + c.getNom());
+    public void annulerReservation(Client c, LocalDate date) {
+        reservations.stream()
+                .filter(r -> r.getClient().equals(c) &&
+                        !date.isBefore(r.getDateArrivee()) &&
+                        date.isBefore(r.getDateDepart()) &&
+                        r.getStatut() != Reservation.StatutReservation.ANNULEE)
+                .findFirst()
+                .ifPresent(Reservation::annuler);
     }
 
     @Override
-    public boolean estReservee(Date date) {
-        return !estLibre(date, new Date(date.getTime() + 86400000));
+    public boolean estReservee(LocalDate date) {
+        return reservations.stream().anyMatch(r ->
+                r.getStatut() == Reservation.StatutReservation.CONFIRMEE &&
+                        !date.isBefore(r.getDateArrivee()) &&
+                        date.isBefore(r.getDateDepart())
+        );
     }
 
     @Override

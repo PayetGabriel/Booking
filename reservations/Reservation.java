@@ -4,6 +4,7 @@ import hebergements.Hebergement;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import personnes.Client;
 
 public class Reservation {
 

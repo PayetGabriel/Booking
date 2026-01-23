@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import personnes.Client;              // <-- Import correct
 import reservations.Reservation;
 import reservations.Reservation.StatutReservation;
 
@@ -22,7 +23,7 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
     private final List<Integer> notes;
     private double noteMoyenne;
 
-    private final List<Reservation> reservations; // <-- changement ici
+    protected final List<Reservation> reservations;
 
     public Hebergement(int id, String nom, String adressePostale, String type,
                        int capaciteMax, double prixParNuit, String descriptionGenerale) {
@@ -51,8 +52,8 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
         return estLibre(debut, fin) && reservations.stream()
                 .noneMatch(r -> r.getStatut() == StatutReservation.CONFIRMEE &&
-                                 !debut.isAfter(r.getDateDepart()) &&
-                                 !fin.isBefore(r.getDateArrivee()));
+                        !debut.isAfter(r.getDateDepart()) &&
+                        !fin.isBefore(r.getDateArrivee()));
     }
 
     @Override
@@ -64,35 +65,37 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
     }
 
     @Override
-    public void reserver(reservations.Client client, LocalDate debut, LocalDate fin) {
+    public void reserver(Client client, LocalDate debut, LocalDate fin) {
         if (!estDisponible(debut, fin)) throw new IllegalStateException("Période non disponible");
 
         Reservation res = new Reservation(client, this, debut, fin);
         res.appliquerReduction(0); // par défaut pas de réduction
         reservations.add(res);
+        client.reserver(res); // on ajoute aussi côté client
 
         retirerPlageDeDisponibilites(debut, fin);
     }
 
     @Override
-    public void annulerReservation(reservations.Client client, LocalDate date) {
+    public void annulerReservation(Client client, LocalDate date) {
         Reservation cible = reservations.stream()
                 .filter(r -> r.getClient().equals(client) &&
-                             !date.isBefore(r.getDateArrivee()) &&
-                             date.isBefore(r.getDateDepart()) &&
-                             r.getStatut() != StatutReservation.ANNULEE)
+                        !date.isBefore(r.getDateArrivee()) &&
+                        date.isBefore(r.getDateDepart()) &&
+                        r.getStatut() != StatutReservation.ANNULEE)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Aucune réservation trouvée pour cette date"));
 
         cible.annuler();
+        client.annulerReservation(cible); // on supprime aussi côté client
     }
 
     @Override
     public boolean estReservee(LocalDate date) {
         return reservations.stream().anyMatch(r ->
                 r.getStatut() == StatutReservation.CONFIRMEE &&
-                !date.isBefore(r.getDateArrivee()) &&
-                date.isBefore(r.getDateDepart())
+                        !date.isBefore(r.getDateArrivee()) &&
+                        date.isBefore(r.getDateDepart())
         );
     }
 
@@ -105,7 +108,6 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
     }
 
     // Méthodes classiques : périodes, notes, comparables...
-    // (inchangées, je ne recopie que les méthodes clés pour gagner de la place)
     public void ajouterPeriodeDisponible(LocalDate debut, LocalDate fin) {
         periodesDisponibles.add(new Periode(debut, fin));
     }
@@ -114,7 +116,7 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
         return periodesDisponibles.stream().anyMatch(p -> p.couvre(debut, fin));
     }
 
-    private void retirerPlageDeDisponibilites(LocalDate debut, LocalDate fin) {
+    protected void retirerPlageDeDisponibilites(LocalDate debut, LocalDate fin) {
         for (int i = 0; i < periodesDisponibles.size(); i++) {
             Periode p = periodesDisponibles.get(i);
             if (p.couvre(debut, fin)) {
@@ -140,6 +142,15 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
     public int getCapaciteMax() { return capaciteMax; }
     public double getPrixParNuit() { return prixParNuit; }
     public void setPrixParNuit(double prixParNuit) { this.prixParNuit = prixParNuit; }
+    public double getNoteMoyenne() {
+        return noteMoyenne;
+    }
+    public void setDescriptionGenerale(String descriptionGenerale) {
+        this.descriptionGenerale = descriptionGenerale;
+    }
+    public List<Periode> getPeriodesDisponibles() {
+        return new ArrayList<>(periodesDisponibles);
+    }
 
     @Override
     public String toString() {
@@ -160,7 +171,7 @@ public class Hebergement implements Comparable<Hebergement>, Reservable {
         public Periode(LocalDate debut, LocalDate fin) { this.debut = debut; this.fin = fin; }
         public boolean couvre(LocalDate arrivee, LocalDate depart) {
             return (arrivee.isEqual(debut) || arrivee.isAfter(debut)) &&
-                   (depart.isEqual(fin) || depart.isBefore(fin));
+                    (depart.isEqual(fin) || depart.isBefore(fin));
         }
         @Override
         public String toString() { return "[" + debut + " -> " + fin + "]"; }

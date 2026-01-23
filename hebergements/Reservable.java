@@ -1,32 +1,25 @@
-import java.util.Date;
+package hebergements;
 
-/**
- * Interface Reservable (exactement comme dans ton énoncé : java.util.Date).
- * Les classes ChambreHotel, Appartement, Villa vont l'implémenter.
- */
+import java.time.LocalDate;
+import personnes.Client;
+
 public interface Reservable {
 
-    // Disponibilité
-    boolean estDisponible(Date debut, Date fin);
+    // Vérifie si l'hébergement est disponible pour une période donnée
+    boolean estDisponible(LocalDate debut, LocalDate fin);
 
-    // Prix (selon dates + nb personnes)
-    double calculerPrix(Date debut, Date fin, int nbPersonnes);
+    // Calcule le prix d'une réservation pour un nombre de personnes
+    double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes);
 
-    // Réserver
-    void reserver(Client c, Date debut, Date fin);
+    // Réserver pour un client sur une période donnée
+    void reserver(Client client, LocalDate debut, LocalDate fin);
 
-    // Annuler une réservation
-    void annulerReservation(Client c, Date date);
+    // Annuler la réservation pour un client à une date donnée
+    void annulerReservation(Client client, LocalDate date);
 
-    // Afficher les détails
+    // Vérifie si l'hébergement est réservé à une date donnée
+    boolean estReservee(LocalDate date);
+
+    // Affiche les détails de l'hébergement
     void afficherDetails();
-
-    // Vérifier si c'est réservé à une date donnée
-    boolean estReservee(Date date);
-
-    // Getters principaux
-    int getId();
-    String getType();
-    int getCapaciteMax();
-    double getPrixParNuit();
 }

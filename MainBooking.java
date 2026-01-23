@@ -4,6 +4,7 @@ import collections.CollectionHebergements;
 import reservations.Reservation;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class MainBooking {
@@ -11,16 +12,30 @@ public class MainBooking {
     public static void main(String[] args) {
 
         System.out.println("=== SCÉNARIO 1 : NouveauClient ===");
-        NouveauClient newClient = new NouveauClient("Leroy", "Clara", "clara.leroy@email.com",
-                "15 rue du Parc", new Date());
+
+        // Conversion LocalDate -> Date
+        Date dateNaissanceNewClient = Date.from(LocalDate.of(2005, 5, 25)
+                .atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        NouveauClient newClient = new NouveauClient(
+                "Leroy", "Clara", "clara.leroy@email.com",
+                "15 rue du Parc", "0123456789", dateNaissanceNewClient
+        );
 
         // Création de quelques hébergements
-        Hebergement chambre = new ChambreHotel(1, "Chambre Standard", "10 rue Hôtel", "Hôtel",
-                2, 80.0, "Chambre confortable pour 2 personnes");
+        Hebergement chambre = new ChambreHotel(
+                1, "Chambre Standard", "10 rue Hôtel",
+                2, 80.0, "Chambre confortable pour 2 personnes",
+                3 // nombre d'étoiles
+        );
         chambre.ajouterPeriodeDisponible(LocalDate.of(2026,1,25), LocalDate.of(2026,2,5));
 
-        Hebergement appart = new Appartement(2, "Appartement Cosy", "20 rue Appart", "Appartement",
-                4, 120.0, "Appartement équipé avec cuisine");
+        Hebergement appart = new Appartement(
+                2, "Appartement Cosy", "20 rue Appart",
+                4, 120.0, "Appartement équipé avec cuisine",
+                50.0, // surface en m²
+                2     // étage
+        );
         appart.ajouterPeriodeDisponible(LocalDate.of(2026,1,28), LocalDate.of(2026,2,10));
 
         CollectionHebergements collection = new CollectionHebergements();
@@ -43,11 +58,19 @@ public class MainBooking {
         }
 
         System.out.println("\n=== SCÉNARIO 2 : AncienClient ===");
-        AncienClient oldClient = new AncienClient("Durand", "Paul", "paul.durand@email.com",
-                "12 rue Victor Hugo", new Date());
+
+        // Conversion LocalDate -> Date
+        Date dateNaissanceOldClient = Date.from(LocalDate.of(2000, 3, 10)
+                .atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        AncienClient oldClient = new AncienClient(
+                "Durand", "Paul", "paul.durand@email.com",
+                "12 rue Victor Hugo", "0987654321", dateNaissanceOldClient
+        );
+
         // Réservation initiale
-        Reservation res2 = new Reservation(oldClient, appart, LocalDate.of(2026,1,29),
-                LocalDate.of(2026,2,3));
+        Reservation res2 = new Reservation(oldClient, appart,
+                LocalDate.of(2026,1,29), LocalDate.of(2026,2,3));
         oldClient.reserver(res2);
         System.out.println("Réservation initiale : " + res2);
 
@@ -64,8 +87,12 @@ public class MainBooking {
         System.out.println("Disponibilités de l'appartement : " + appart.getPeriodesDisponibles());
 
         System.out.println("\n=== SCÉNARIO 3 : Administrateur ===");
-        Hebergement villa = new Villa(3, "Villa Luxe", "50 rue Villa", "Villa",
-                8, 350.0, "Villa avec piscine et jardin");
+        Hebergement villa = new Villa(
+                3, "Villa Luxe", "50 rue Villa",
+                8, 350.0, "Villa avec piscine et jardin",
+                true,  // piscine
+                250.0  // surface m²
+        );
         villa.ajouterPeriodeDisponible(LocalDate.of(2026,2,1), LocalDate.of(2026,2,15));
 
         // Ajout des hébergements
@@ -80,7 +107,7 @@ public class MainBooking {
         admin.supprimerHebergement(collection, chambre);
 
         // Tri et affichage final
-        collection.trierParPrix(); // tu peux ajouter cette méthode si CollectionHebergements la supporte
+        collection.trierParPrix();
         System.out.println("Collection après modification, suppression et tri :");
         collection.getHebergements().forEach(System.out::println);
     }
