@@ -1,10 +1,7 @@
 package personnes;
 
-import java.util.List;
 import hebergements.Hebergement;
 import collections.CollectionHebergements;
-import personnes.Client;
-import personnes.AncienClient;
 
 public class Administrateur extends Personne {
 
@@ -17,9 +14,7 @@ public class Administrateur extends Personne {
         return "Administrateur";
     }
 
-    // ==========================
-    // Ajouter un hébergement
-    // ==========================
+    // Ajoute un hébergement à la collection
     public void ajouterHebergement(CollectionHebergements collection, Hebergement h) {
         if (collection != null && h != null) {
             collection.ajouter(h);
@@ -27,20 +22,19 @@ public class Administrateur extends Personne {
         }
     }
 
-    // ==========================
-    // Supprimer un hébergement
-    // ==========================
+    // Supprime un hébergement existant
     public void supprimerHebergement(CollectionHebergements collection, Hebergement h) {
         if (collection != null && h != null) {
             boolean ok = collection.supprimer(h);
-            if (ok) System.out.println("Admin " + getNom() + " a supprimé : " + h.getNom());
-            else System.out.println("Impossible de supprimer : " + h.getNom());
+            if (ok) {
+                System.out.println("Admin " + getNom() + " a supprimé : " + h.getNom());
+            } else {
+                System.out.println("Impossible de supprimer : " + h.getNom());
+            }
         }
     }
 
-    // ==========================
-    // Modifier un hébergement (ex : prix ou description)
-    // ==========================
+    // Modifie les informations principales d’un hébergement
     public void modifierHebergement(Hebergement h, String nouveauNom,
                                     String nouvelleDescription, double nouveauPrix) {
         if (h != null) {
@@ -51,19 +45,15 @@ public class Administrateur extends Personne {
         }
     }
 
-    // ==========================
-    // Gérer les réductions pour un AncienClient
-    // ==========================
+    // Applique une réduction à un ancien client
     public void appliquerReduction(AncienClient client, double pourcentage) {
         if (client != null) {
-            client.setReduction(pourcentage); // Il faudra ajouter setReduction dans AncienClient
+            client.setReduction(pourcentage);
             System.out.println("Réduction de " + pourcentage + "% appliquée pour : " + client.getNom());
         }
     }
 
-    // ==========================
-    // Consulter les dossiers d’un client
-    // ==========================
+    // Affiche les informations et réservations d’un client
     public void consulterClient(Client client) {
         if (client != null) {
             System.out.println("=== Dossier du client : " + client.getNom() + " ===");

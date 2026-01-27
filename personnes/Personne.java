@@ -1,48 +1,32 @@
 package personnes;
 
 public abstract class Personne {
-    // Attributs protégés accessibles par les sous-classes
+
     protected String nom;
     protected String prenom;
     protected String email;
 
-    // Constructeur
+    // Création d'une personne
     public Personne(String nom, String prenom, String email) {
         this.nom = nom;
         this.prenom = prenom;
         this.email = email;
     }
 
-    // Getters
-    public String getNom() {
-        return nom;
-    }
+    // =================== Getters ===================
+    public String getNom() { return nom; }
+    public String getPrenom() { return prenom; }
+    public String getEmail() { return email; }
 
-    public String getPrenom() {
-        return prenom;
-    }
+    // =================== Setters ===================
+    public void setNom(String nom) { this.nom = nom; }
+    public void setPrenom(String prenom) { this.prenom = prenom; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    // Setters (optionnel, mais souvent demandé pour modifier les infos)
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    // Méthode abstraite que chaque sous-classe doit implémenter
+    // Chaque sous-classe définit son type (NouveauClient, AncienClient, etc.)
     public abstract String getTypePersonne();
 
-    // toString() simple pour affichage console
+    // Affichage simple d'une personne
     @Override
     public String toString() {
         return "Nom: " + nom + ", Prénom: " + prenom + ", Email: " + email;

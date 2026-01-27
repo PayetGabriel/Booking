@@ -3,13 +3,13 @@ package hebergements;
 import java.time.LocalDate;
 import personnes.Client;
 import reservations.Reservation;
-import reservations.Reservation.StatutReservation;
 
 public class Villa extends Hebergement implements Reservable {
 
     private boolean piscine;
     private double jardinM2;
 
+    // Création d’une villa avec ses spécificités
     public Villa(int id, String nom, String adressePostale,
                  int capaciteMax, double prixParNuit,
                  String descriptionGenerale,
@@ -22,30 +22,34 @@ public class Villa extends Hebergement implements Reservable {
         this.jardinM2 = jardinM2;
     }
 
+    // Vérifie la disponibilité sur la période demandée
     @Override
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
-        return estLibre(debut, fin) && !estReservee(debut); // simple vérif
+        return estLibre(debut, fin) && !estReservee(debut);
     }
 
+    // Applique un supplément si la villa possède une piscine
     @Override
     public double calculerPrix(LocalDate debut, LocalDate fin, int nbPersonnes) {
         double prix = super.calculerPrix(debut, fin, nbPersonnes);
         if (piscine) {
-            prix *= 1.20; // +20%
+            prix *= 1.20;
         }
         return prix;
     }
 
+    // Crée une réservation pour la villa
     @Override
     public void reserver(Client c, LocalDate debut, LocalDate fin) {
         if (!estDisponible(debut, fin)) {
             throw new IllegalStateException("Villa non disponible");
         }
         Reservation res = new Reservation(c, this, debut, fin);
-        reservations.add(res); // utilise la liste de Hebergement
-        retirerPlageDeDisponibilites(debut, fin); // maintenant protected dans Hebergement
+        reservations.add(res);
+        retirerPlageDeDisponibilites(debut, fin);
     }
 
+    // Annule la réservation correspondant à la date et au client
     @Override
     public void annulerReservation(Client c, LocalDate date) {
         reservations.stream()
@@ -57,6 +61,7 @@ public class Villa extends Hebergement implements Reservable {
                 .ifPresent(Reservation::annuler);
     }
 
+    // Indique si la villa est réservée à une date donnée
     @Override
     public boolean estReservee(LocalDate date) {
         return reservations.stream().anyMatch(r ->
