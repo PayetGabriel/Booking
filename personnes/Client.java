@@ -35,31 +35,52 @@ public class Client extends Personne {
 
     // Recherche d'hébergements (méthode vide pour l'instant)
     public void rechercherHebergements() {
-        System.out.println("Recherche d'hébergements (à implémenter)");
+        System.out.println("Recherche d'hébergements pour le client " + prenom + " " + nom + "...");
+        System.out.println("Résultats simulés : Appartement, Chambre d'hôtel, Villa");
     }
 
     // Ajouter une réservation à la liste
     public void reserver(Reservation reservation) {
-        System.out.println("Réservation (à implémenter)");
         reservations.add(reservation);
+        System.out.println("Réservation simulée pour " + prenom + " " + nom + " :");
+        System.out.println("- Hébergement : " + reservation.getHebergement().getNom());
+        System.out.println("- Date d'arrivée : " + reservation.getDateArrivee());
+        System.out.println("- Date de départ : " + reservation.getDateDepart());
     }
 
     // Annuler une réservation
     public void annulerReservation(Reservation reservation) {
-        System.out.println("Annulation réservation (à implémenter)");
-        reservations.remove(reservation);
+        if (reservations.remove(reservation)) {
+            System.out.println("Annulation simulée pour " + prenom + " " + nom + " :");
+            System.out.println("- Hébergement : " + reservation.getHebergement().getNom());
+            System.out.println("- Date d'arrivée : " + reservation.getDateArrivee());
+            System.out.println("- Date de départ : " + reservation.getDateDepart());
+        } else {
+            System.out.println("Aucune réservation trouvée à annuler pour " + prenom + " " + nom);
+        }
     }
 
     // Vérifie si le client a droit à une réduction
     public boolean verifierReduction() {
-        System.out.println("Vérification réduction (à implémenter)");
-        return false;
+        boolean hasReduction = reservations.size() > 3; // exemple simple
+        if (hasReduction) {
+            System.out.println(prenom + " " + nom + " a droit à une réduction.");
+        } else {
+            System.out.println(prenom + " " + nom + " n'a pas de réduction.");
+        }
+        return hasReduction;
     }
 
     // Affiche la facture d'une réservation
     public void afficherFacture(Reservation reservation) {
-        System.out.println("Facture de la réservation (à implémenter)");
-        System.out.println(reservation);
+        System.out.println("=== Facture simulée ===");
+        System.out.println("Client : " + prenom + " " + nom);
+        System.out.println("Hébergement : " + reservation.getHebergement().getNom());
+        System.out.println("Date d'arrivée : " + reservation.getDateArrivee());
+        System.out.println("Date de départ : " + reservation.getDateDepart());
+        System.out.println("Prix total : " + reservation.getPrixTotal() + " €");
+        System.out.println("Réduction appliquée : " + reservation.getTauxReduction() + " %");
+        System.out.println("=======================");
     }
 
     // Affiche toutes les réservations du client
